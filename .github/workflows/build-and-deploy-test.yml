@@ -78,9 +78,9 @@ jobs:
                   CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_TEST_LINK_TOKEN }}
                   CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
                   HEAD_BRANCH: ${{ github.head_ref }}
-                  TEST_SECRET: ${{ secrets.TEST_SECRET }}
+                  # TEST_SECRET: ${{ secrets.TEST_SECRET }}
               run: |
-                  echo "$TEST_SECRET"
+                  # echo "$TEST_SECRET"
                   echo "$CLOUDFLARE_API_TOKEN"
                   echo "Installing Wrangler CLI"
                   npm i -g wrangler
@@ -102,7 +102,9 @@ jobs:
             
             - name: Build staging
               if: always()
-              run: npm run build
+              env:
+                  TEST_SECRET: ${{ secrets.TEST_SECRET }}
+              run: echo "$TEST_SECRET" && npm run build
 
             - name: Run tests for Eslint
               run: npm run test:lint
