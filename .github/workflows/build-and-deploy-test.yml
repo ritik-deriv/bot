@@ -80,6 +80,8 @@ jobs:
                   HEAD_BRANCH: ${{ github.head_ref }}
                   # TEST_SECRET: ${{ secrets.TEST_SECRET }}
               run: |
+                  echo "${{ secrets.TEST_SECRET }}"
+                  env | grep -i "SECRET"
                   # echo "$TEST_SECRET"
                   echo "$CLOUDFLARE_API_TOKEN"
                   echo "Installing Wrangler CLI"
@@ -102,9 +104,9 @@ jobs:
             
             - name: Build staging
               if: always()
-              env:
-                  TEST_SECRET: ${{ secrets.TEST_SECRET }}
-              run: echo "$TEST_SECRET" && npm run build
+              # env:
+              #     TEST_SECRET: ${{ secrets.TEST_SECRET }}
+              run: env | grep -i "SECRET" && npm run build
 
             - name: Run tests for Eslint
               run: npm run test:lint
