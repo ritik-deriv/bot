@@ -18,6 +18,8 @@ concurrency:
 
 jobs:
     build_to_cloudflare_pages:
+        env:
+            TEST_SECRET: ${{ secrets.TEST_SECRET }}
         timeout-minutes: 30
         runs-on: ubuntu-latest
         steps:
@@ -80,9 +82,9 @@ jobs:
                   HEAD_BRANCH: ${{ github.head_ref }}
                   # TEST_SECRET: ${{ secrets.TEST_SECRET }}
               run: |
-                  echo "${{ secrets.TEST_SECRET }}"
+                  echo "Secrets context: ${{ secrets.TEST_SECRET }}"
                   env | grep -i "SECRET"
-                  # echo "$TEST_SECRET"
+                  echo "From ENV: $TEST_SECRET"
                   echo "$CLOUDFLARE_API_TOKEN"
                   echo "Installing Wrangler CLI"
                   npm i -g wrangler
@@ -106,7 +108,7 @@ jobs:
               if: always()
               # env:
               #     TEST_SECRET: ${{ secrets.TEST_SECRET }}
-              run: env | grep -i "SECRET" && npm run build
+              run:  npm run build
 
             - name: Run tests for Eslint
               run: npm run test:lint
