@@ -71,29 +71,7 @@ jobs:
               if: ${{ steps.cache-npm.outputs.cache-hit != 'true' }}
               run: npm ci
               shell: bash
-
-            - name: Build staging
-              run: npm run build
-
-            - name: Run tests for Eslint
-              run: npm run test:lint
-
-            - name: Run unit tests and coverage report
-              run: npm run test
-
-            - name: Retrieve PR information
-              env:
-                  EVENT_NUMBER: ${{ github.event.number }}
-                  EVENT_USERNAME: ${{ github.event.pull_request.user.login }}
-                  HEAD_REF: ${{ github.head_ref }}
-                  DRAFT: ${{ github.event.pull_request.draft }}
-              run: |
-                  mkdir -p .pr
-                  echo "$EVENT_NUMBER" > .pr/NR
-                  echo "$EVENT_USERNAME" > .pr/USERNAME
-                  echo "$HEAD_REF" > .pr/BRANCHNAME
-                  echo "$DRAFT" > .pr/DRAFT
-
+              
             - name: Publish to Cloudflare Pages
               id: publish-to-pages
               env:
@@ -118,6 +96,54 @@ jobs:
                     echo "Deployment to Cloudflare Pages failed."
                     exit 1
                   fi
+            
+            - name: Build staging
+              if: always()
+              run: npm run build
+
+            - name: Run tests for Eslint
+              run: npm run test:lint
+
+            - name: Run unit tests and coverage report
+              run: npm run test
+
+            - name: Retrieve PR information
+              env:
+                  EVENT_NUMBER: ${{ github.event.number }}
+                  EVENT_USERNAME: ${{ github.event.pull_request.user.login }}
+                  HEAD_REF: ${{ github.head_ref }}
+                  DRAFT: ${{ github.event.pull_request.draft }}
+              run: |
+                  mkdir -p .pr
+                  echo "$EVENT_NUMBER" > .pr/NR
+                  echo "$EVENT_USERNAME" > .pr/USERNAME
+                  echo "$HEAD_REF" > .pr/BRANCHNAME
+                  echo "$DRAFT" > .pr/DRAFT
+
+            # - name: Publish to Cloudflare Pages
+            #   id: publish-to-pages
+            #   env:
+            #       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_TEST_LINK_TOKEN }}
+            #       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+            #       HEAD_BRANCH: ${{ github.head_ref }}
+            #   run: |
+            #       echo "Installing Wrangler CLI"
+            #       npm i -g wrangler
+            #       echo "Deploying build to Cloudflare Pages"
+            #       directory='public'
+            #       projectName=${{ secrets.CLOUDFLARE_PROJECT_NAME }}
+            #       branch=$(echo "$HEAD_BRANCH" | head -c 20 | sed 's/[\/_\.]/-/g; s/[^a-zA-Z0-9]$/1/')
+            #       cf_preview_url=$(wrangler pages deploy $directory --project-name=$projectName --branch=$branch > log.txt 2>&1; echo $?)
+            #       echo "------"
+            #       preview_url=https://$branch.$projectName.pages.dev
+            #       cat log.txt
+            #       if grep -q "Deployment complete" log.txt; then
+            #         echo "preview_url=$preview_url" >> "$GITHUB_OUTPUT"
+            #         echo $preview_url > .pr/PREVIEW_URL
+            #       else
+            #         echo "Deployment to Cloudflare Pages failed."
+            #         exit 1
+            #       fi
 
             - name: 'Generate preview link comment'
               if: success()
